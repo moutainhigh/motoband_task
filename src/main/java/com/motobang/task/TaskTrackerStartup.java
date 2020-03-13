@@ -19,7 +19,7 @@ public class TaskTrackerStartup {
 
     public static void main(String[] args) throws IOException {
     	DBConnectionManager.init();
-		ConfigManager.getInstance().init("MotoBandService");
+		ConfigManager.getInstance().init("MotoBandTask");
 		OkHttpClientUtil.init();
         String cfgPath = args[0];
         start(cfgPath);
