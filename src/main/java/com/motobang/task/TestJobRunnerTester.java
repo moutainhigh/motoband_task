@@ -15,7 +15,7 @@ public class TestJobRunnerTester extends JobRunnerTester {
         Job job = new Job();
         job.setTaskId("cms_"+"1111");
         job.setReplaceOnExist(true);
-        job.setParam("type", "create_mbuser_push");
+        job.setParam("type", "CREATE_MBUSER_PUSH");
         job.setTaskTrackerNodeGroup("test_trade_TaskTracker");
         job.setTriggerTime(1583996730000l);
         job.setMaxRetryTimes(10);
