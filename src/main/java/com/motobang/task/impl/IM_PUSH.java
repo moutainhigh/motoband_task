@@ -50,7 +50,7 @@ public class IM_PUSH implements JobRunner {
 			if(StringUtils.isNotBlank(data)) {
 				MessageTaskModel taskModel=JSON.parseObject(data, MessageTaskModel.class);
 				UserManager.getInstance().addMessageTask(taskModel);
-				UserManager.getInstance().addMessageTaskUserAll(taskid);
+				UserManager.getInstance().addMessageTaskUserAll(taskModel);
 				LOGGER.error("taskid="+taskid+",开始查询推送的MBMessageModel");
 				MBMessageModel model = gettaskMessageModel(taskModel);
 				LOGGER.error("taskid="+taskid+",结束查询推送的MBMessageModel");
