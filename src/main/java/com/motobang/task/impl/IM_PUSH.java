@@ -111,6 +111,13 @@ public class IM_PUSH implements JobRunner {
 				ExecutorsUtils.getInstance().submit(new Runnable() {
 					@Override
 					public void run() {
+						if(CollectionUtil.isEmpty(innerlist)) {
+							try {
+								cb.await();
+							} catch (InterruptedException | BrokenBarrierException e) {
+								e.printStackTrace();
+							}
+						}
 						int groupcount = groupcountAtomic.incrementAndGet();
 						double forcountdouble = Math.ceil(innerlist.size() / 500.0);
 						int forcount = (int) forcountdouble;
