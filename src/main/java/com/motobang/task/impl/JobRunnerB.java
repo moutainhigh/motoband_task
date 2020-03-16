@@ -44,7 +44,7 @@ public class JobRunnerB implements JobRunner {
 	@Override
 	public Result run(JobContext arg0) throws Throwable {
 		long minaddtime=LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-		String sql="select userid,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push ) limit 1100";
+		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push ) limit 1100";
 		List<Map<String, Object>> result=UserDAO.executesql(sql);
 		List<String> mbusermodeljsonstr=Lists.newArrayList();
 		List<String> userids=Lists.newArrayList();
@@ -57,6 +57,12 @@ public class JobRunnerB implements JobRunner {
 				if(citydata!=null) {
 					mbuser.province=citydata.province;
 					mbuser.city=citydata.name;
+				}else{
+					 citydata=MotoDataManager.getInstance().getCityData(city);
+							 if(citydata!=null) {
+									mbuser.province=citydata.province;
+									mbuser.city=citydata.name;
+								}
 				}
 			}
 			if(map.containsKey("gender")) {
@@ -70,21 +76,25 @@ public class JobRunnerB implements JobRunner {
 				mbuser.modelid=g.modelid;
 			}
 			if(map.containsKey("addtime")) {
-				mbuser.addtime=(long) map.get("addtime");
+				mbuser.addtime=Long.parseLong(map.get("addtime").toString());
 			}
 			
 			StringBuffer lastActiveTimeSQL=new StringBuffer();
 //			String tableName=D
 			//一年内没有登录过 标记为无效用户
 			int year=12;
+			lastActiveTimeSQL.append("select * from  (");
+
 			for (int i = 0; i < year; i++) {
 				lastActiveTimeSQL.append("select * from userloginonlog");
 				lastActiveTimeSQL.append(LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M")));
-				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null  logintime desc limit 1");
-				if (i != year) {
-					lastActiveTimeSQL.append(" UNION all ");
+				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null  limit 1");
+				if (i != year-1) {
+					lastActiveTimeSQL.append(" UNION ALL ");
 				}
 			}
+			lastActiveTimeSQL.append(") as  t");
+
 			List<Map<String, Object>> lastActiveTimeMapList=UserDAO.executesql(lastActiveTimeSQL.toString());
 			if(!CollectionUtil.isEmpty(lastActiveTimeMapList)) {
 				Map<String,Object> lastActiveTime=lastActiveTimeMapList.get(0);

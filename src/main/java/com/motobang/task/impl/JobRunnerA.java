@@ -32,6 +32,7 @@ public class JobRunnerA implements JobRunner {
 			LOGGER.info("开始处理任务 jobContext="+JSON.toJSONString(jobContext));
 			String taskid=jobContext.getJob().getTaskId();
 			//标记需要处理的用户 条件是有效的用户  需要先筛选出有效的用户 条件是半年以内登录过的用户
+			
 
         } catch (Exception e) {
         	LOGGER.error("ERROR="+ExceptionUtils.getStackTrace(e));

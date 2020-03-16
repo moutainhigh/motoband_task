@@ -7,6 +7,7 @@ import com.github.ltsopensource.core.logger.LoggerFactory;
 import com.github.ltsopensource.tasktracker.TaskTracker;
 import com.motoband.manager.ConfigManager;
 import com.motoband.manager.DBConnectionManager;
+import com.motoband.manager.DataVersionManager;
 import com.motoband.manager.MotoDataManager;
 import com.motoband.utils.OkHttpClientUtil;
 
@@ -17,9 +18,12 @@ import com.motoband.utils.OkHttpClientUtil;
 public class TaskTrackerStartup {
     protected static final Logger LOGGER = LoggerFactory.getLogger(TaskTrackerStartup.class);
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
     	DBConnectionManager.init();
 		ConfigManager.getInstance().init("MotoBandTask");
+		MotoDataManager.getInstance().init();
+		DataVersionManager.getInstance().init();
+		DataVersionManager.getInstance().startCheck();
 		OkHttpClientUtil.init();
         String cfgPath = args[0];
         start(cfgPath);
