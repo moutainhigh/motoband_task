@@ -10,6 +10,8 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
 import com.github.ltsopensource.core.domain.Action;
+import com.github.ltsopensource.core.logger.Logger;
+import com.github.ltsopensource.core.logger.LoggerFactory;
 import com.github.ltsopensource.tasktracker.Result;
 import com.github.ltsopensource.tasktracker.runner.JobContext;
 import com.github.ltsopensource.tasktracker.runner.JobRunner;
@@ -32,7 +34,9 @@ import com.motoband.utils.collection.CollectionUtil;
  * userid,province,city,gender, model,brand ,addtime,lastactivetime,ctype
  * Created by junfei.Yang on 2020年3月12日.
  */
-public class JobRunnerB implements JobRunner {
+public class CREATE_MBUSER_PUSH implements JobRunner {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(CREATE_MBUSER_PUSH.class);
+
 	public static void main(String[] args) {
 		for (int i = 0; i < 6; i++) {
 			String d=LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M"));

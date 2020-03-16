@@ -13,8 +13,10 @@ import com.github.ltsopensource.tasktracker.runner.JobContext;
 import com.github.ltsopensource.tasktracker.runner.JobRunner;
 import com.motoband.common.MBResponse;
 import com.motoband.common.MBResponseCode;
-import com.motobang.task.impl.JobRunnerA;
-import com.motobang.task.impl.JobRunnerB;
+import com.motoband.model.task.MessageTaskModel;
+import com.motobang.task.impl.IM_PUSH;
+import com.motobang.task.impl.IM_PUSH_ERROR_USERIDS;
+import com.motobang.task.impl.CREATE_MBUSER_PUSH;
 
 public class JobRunnerDispatcher implements JobRunner {
     protected static final Logger LOGGER = LoggerFactory.getLogger(JobRunnerDispatcher.class);
@@ -23,8 +25,10 @@ public class JobRunnerDispatcher implements JobRunner {
             JOB_RUNNER_MAP = new ConcurrentHashMap<String, JobRunner>();
 
     static {
-        JOB_RUNNER_MAP.put("IM_PUSH", new JobRunnerA()); 
-        JOB_RUNNER_MAP.put("CREATE_MBUSER_PUSH", new JobRunnerB());
+        JOB_RUNNER_MAP.put(MessageTaskModel.IM_PUSH, new IM_PUSH()); 
+        JOB_RUNNER_MAP.put(MessageTaskModel.CREATE_MBUSER_PUSH, new CREATE_MBUSER_PUSH());
+        JOB_RUNNER_MAP.put(MessageTaskModel.IM_PUSH_ERROR_USERIDS, new IM_PUSH_ERROR_USERIDS());
+
     }
 
 
