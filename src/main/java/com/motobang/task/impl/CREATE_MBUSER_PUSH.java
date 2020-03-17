@@ -36,23 +36,31 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
     protected static final Logger LOGGER = LoggerFactory.getLogger(CREATE_MBUSER_PUSH.class);
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 6; i++) {
+		StringBuffer sb=new StringBuffer();
+		for (int i = 0; i < 12; i++) {
+			sb.append("alter table userloginonlog");
 			String d=LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M"));
-			System.out.println(d);
+			sb.append(d);
+			sb.append(" add lonlat varchar(255),");
+			sb.append(" add citycode varchar(255);");
+			sb.append("\r\n");
 		}
-		System.out.println(LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli());
+		System.out.println(sb.toString());
+
+//		System.out.println(LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli());
 	}
 
 	@Override
 	public Result run(JobContext arg0) throws Throwable {
 		long minaddtime=LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push )";
+		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X'";
 		List<Map<String, Object>> result=UserDAO.executesql(sql);
 		List<String> mbusermodeljsonstr=Lists.newArrayList();
 		List<String> userids=Lists.newArrayList();
 		for (Map<String, Object> map : result) {
 			String userid=(String) map.get("userid");
 			MBUserPushModel mbuser=new MBUserPushModel();
+			mbuser.userid=userid;
 			if(map.containsKey("city")) {
 				String city=(String) map.get("city");
 				CityDataModel citydata=MotoDataManager.getInstance().getCityDataReverse(city);
@@ -90,27 +98,32 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			for (int i = 0; i < year; i++) {
 				lastActiveTimeSQL.append("select * from userloginonlog");
 				lastActiveTimeSQL.append(LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M")));
-				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null  limit 1");
+				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null ");
 				if (i != year-1) {
-					lastActiveTimeSQL.append(" UNION ALL ");
+					lastActiveTimeSQL.append(" \r\n UNION ALL  \r\n");
 				}
 			}
-			lastActiveTimeSQL.append(") as  t");
+			lastActiveTimeSQL.append(") as  t ORDER BY t.logintime limit 1");
 
 			List<Map<String, Object>> lastActiveTimeMapList=UserDAO.executesql(lastActiveTimeSQL.toString());
 			if(!CollectionUtil.isEmpty(lastActiveTimeMapList)) {
 				Map<String,Object> lastActiveTime=lastActiveTimeMapList.get(0);
 				if(lastActiveTime.containsKey("ctype")) {
-					mbuser.ctype=(int) lastActiveTime.get("ctype");
+					mbuser.ctype=Integer.parseInt(lastActiveTime.get("ctype").toString());
 				}
 				if(lastActiveTime.containsKey("cversion")) {
 					 String cversion=lastActiveTime.get("cversion").toString().replaceAll("\\.","");
 					 mbuser.cversion=Long.parseLong(cversion);
 				}
+				if(lastActiveTime.containsKey("logintime")) {
+					 mbuser.lastactivetime=Long.parseLong(lastActiveTime.get("logintime").toString());
+				}
+			}else{
+				mbuser.state=1;
 			}
 			UserDAO.inserUserPush(mbuser);
-			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
-			userids.add(userid);
+//			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
+//			userids.add(userid);
 //			if(mbusermodeljsonstr.size()%1000==0) {
 //				Map<String,Object> searchparams=Maps.newHashMap();
 //				searchparams.put("searchcontent", mbusermodeljsonstr);
@@ -124,6 +137,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 //		searchparams.put("searchcontent", mbusermodeljsonstr);
 //		searchparams.put("nids", userids);
 //		ElasticSearchManager.getInstance().syncAddEsList(MBUserPushModel.class, JSON.toJSONString(searchparams));	
+		LOGGER.debug("更新用戶有效性over");
 		return new Result(Action.EXECUTE_SUCCESS);
 	}
 }
