@@ -22,9 +22,7 @@ import com.motoband.manager.MotoDataManager;
 import com.motoband.manager.search.ElasticSearchManager;
 import com.motoband.model.CityDataModel;
 import com.motoband.model.GarageModel;
-import com.motoband.model.MBUserPushModel;
-import com.motoband.model.NewsModel;
-import com.motoband.utils.ExecutorsUtils;
+import com.motoband.model.task.MBUserPushModel;
 import com.motoband.utils.collection.CollectionUtil;
 
 /**
