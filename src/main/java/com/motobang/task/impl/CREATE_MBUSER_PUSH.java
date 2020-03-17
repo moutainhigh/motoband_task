@@ -36,17 +36,24 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
     protected static final Logger LOGGER = LoggerFactory.getLogger(CREATE_MBUSER_PUSH.class);
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 6; i++) {
+		StringBuffer sb=new StringBuffer();
+		for (int i = 0; i < 12; i++) {
+			sb.append("alter table userloginonlog");
 			String d=LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M"));
-			System.out.println(d);
+			sb.append(d);
+			sb.append(" add lonlat varchar(255),");
+			sb.append(" add citycode varchar(255);");
+			sb.append("\r\n");
 		}
-		System.out.println(LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli());
+		System.out.println(sb.toString());
+
+//		System.out.println(LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli());
 	}
 
 	@Override
 	public Result run(JobContext arg0) throws Throwable {
 		long minaddtime=LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push )";
+		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push ) limit 10";
 		List<Map<String, Object>> result=UserDAO.executesql(sql);
 		List<String> mbusermodeljsonstr=Lists.newArrayList();
 		List<String> userids=Lists.newArrayList();
@@ -92,7 +99,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 				lastActiveTimeSQL.append(LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M")));
 				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null  limit 1");
 				if (i != year-1) {
-					lastActiveTimeSQL.append(" UNION ALL ");
+					lastActiveTimeSQL.append(" \r\n UNION ALL  \r\n");
 				}
 			}
 			lastActiveTimeSQL.append(") as  t");
@@ -101,7 +108,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			if(!CollectionUtil.isEmpty(lastActiveTimeMapList)) {
 				Map<String,Object> lastActiveTime=lastActiveTimeMapList.get(0);
 				if(lastActiveTime.containsKey("ctype")) {
-					mbuser.ctype=(int) lastActiveTime.get("ctype");
+					mbuser.ctype=Integer.parseInt(lastActiveTime.get("ctype").toString());
 				}
 				if(lastActiveTime.containsKey("cversion")) {
 					 String cversion=lastActiveTime.get("cversion").toString().replaceAll("\\.","");
