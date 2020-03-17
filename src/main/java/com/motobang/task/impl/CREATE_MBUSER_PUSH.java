@@ -53,13 +53,14 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 	@Override
 	public Result run(JobContext arg0) throws Throwable {
 		long minaddtime=LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push ) limit 10";
+		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X'";
 		List<Map<String, Object>> result=UserDAO.executesql(sql);
 		List<String> mbusermodeljsonstr=Lists.newArrayList();
 		List<String> userids=Lists.newArrayList();
 		for (Map<String, Object> map : result) {
 			String userid=(String) map.get("userid");
 			MBUserPushModel mbuser=new MBUserPushModel();
+			mbuser.userid=userid;
 			if(map.containsKey("city")) {
 				String city=(String) map.get("city");
 				CityDataModel citydata=MotoDataManager.getInstance().getCityDataReverse(city);
@@ -97,12 +98,12 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			for (int i = 0; i < year; i++) {
 				lastActiveTimeSQL.append("select * from userloginonlog");
 				lastActiveTimeSQL.append(LocalDate.now().plusMonths(-i).format(DateTimeFormatter.ofPattern("_yyyy_M")));
-				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null  limit 1");
+				lastActiveTimeSQL.append(" where userid=\""+userid+"\" and ctype in (1,2) and channel is null ");
 				if (i != year-1) {
 					lastActiveTimeSQL.append(" \r\n UNION ALL  \r\n");
 				}
 			}
-			lastActiveTimeSQL.append(") as  t");
+			lastActiveTimeSQL.append(") as  t ORDER BY t.logintime limit 1");
 
 			List<Map<String, Object>> lastActiveTimeMapList=UserDAO.executesql(lastActiveTimeSQL.toString());
 			if(!CollectionUtil.isEmpty(lastActiveTimeMapList)) {
@@ -114,10 +115,15 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 					 String cversion=lastActiveTime.get("cversion").toString().replaceAll("\\.","");
 					 mbuser.cversion=Long.parseLong(cversion);
 				}
+				if(lastActiveTime.containsKey("logintime")) {
+					 mbuser.lastactivetime=Long.parseLong(lastActiveTime.get("logintime").toString());
+				}
+			}else{
+				mbuser.state=1;
 			}
 			UserDAO.inserUserPush(mbuser);
-			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
-			userids.add(userid);
+//			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
+//			userids.add(userid);
 //			if(mbusermodeljsonstr.size()%1000==0) {
 //				Map<String,Object> searchparams=Maps.newHashMap();
 //				searchparams.put("searchcontent", mbusermodeljsonstr);
@@ -131,6 +137,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 //		searchparams.put("searchcontent", mbusermodeljsonstr);
 //		searchparams.put("nids", userids);
 //		ElasticSearchManager.getInstance().syncAddEsList(MBUserPushModel.class, JSON.toJSONString(searchparams));	
+		LOGGER.debug("更新用戶有效性over");
 		return new Result(Action.EXECUTE_SUCCESS);
 	}
 }
