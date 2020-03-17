@@ -46,7 +46,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 	@Override
 	public Result run(JobContext arg0) throws Throwable {
 		long minaddtime=LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push ) limit 1100";
+		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X' and userid not in (select userid from mbuser_push )";
 		List<Map<String, Object>> result=UserDAO.executesql(sql);
 		List<String> mbusermodeljsonstr=Lists.newArrayList();
 		List<String> userids=Lists.newArrayList();
@@ -111,19 +111,19 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			UserDAO.inserUserPush(mbuser);
 			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
 			userids.add(userid);
-			if(mbusermodeljsonstr.size()%1000==0) {
-				Map<String,Object> searchparams=Maps.newHashMap();
-				searchparams.put("searchcontent", mbusermodeljsonstr);
-				searchparams.put("nids", userids);
-				ElasticSearchManager.getInstance().syncAddEsList(MBUserPushModel.class, JSON.toJSONString(searchparams));	
-				mbusermodeljsonstr.clear();
-				userids.clear();
-			}
+//			if(mbusermodeljsonstr.size()%1000==0) {
+//				Map<String,Object> searchparams=Maps.newHashMap();
+//				searchparams.put("searchcontent", mbusermodeljsonstr);
+//				searchparams.put("nids", userids);
+//				ElasticSearchManager.getInstance().syncAddEsList(MBUserPushModel.class, JSON.toJSONString(searchparams));	
+//				mbusermodeljsonstr.clear();
+//				userids.clear();
+//			}
 		}
-		Map<String,Object> searchparams=Maps.newHashMap();
-		searchparams.put("searchcontent", mbusermodeljsonstr);
-		searchparams.put("nids", userids);
-		ElasticSearchManager.getInstance().syncAddEsList(MBUserPushModel.class, JSON.toJSONString(searchparams));	
+//		Map<String,Object> searchparams=Maps.newHashMap();
+//		searchparams.put("searchcontent", mbusermodeljsonstr);
+//		searchparams.put("nids", userids);
+//		ElasticSearchManager.getInstance().syncAddEsList(MBUserPushModel.class, JSON.toJSONString(searchparams));	
 		return new Result(Action.EXECUTE_SUCCESS);
 	}
 }
