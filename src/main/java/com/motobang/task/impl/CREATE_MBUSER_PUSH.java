@@ -53,7 +53,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 	@Override
 	public Result run(JobContext arg0) throws Throwable {
 		long minaddtime=LocalDateTime.of(LocalDate.now().plusYears(-2), LocalTime.now()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-		String sql="select userid,city,gender,addtime from mbuser where addtime>="+minaddtime+" and channel not like '%X'";
+		String sql="select userid,city,gender,addtime from mbuser where  channel not like '%X'";
 		List<Map<String, Object>> result=UserDAO.executesql(sql);
 		List<String> mbusermodeljsonstr=Lists.newArrayList();
 		List<String> userids=Lists.newArrayList();
