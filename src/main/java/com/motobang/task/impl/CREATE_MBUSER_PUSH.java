@@ -63,16 +63,18 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			mbuser.userid=userid;
 			if(map.containsKey("city")) {
 				String city=(String) map.get("city");
-				CityDataModel citydata=MotoDataManager.getInstance().getCityDataReverse(city);
+				//获取北京的citydatamodel
+				CityDataModel citydata=MotoDataManager.getInstance().getOldCityName(city);
 				if(citydata!=null) {
+					citydata=MotoDataManager.getInstance().getCityData(citydata.citycode);
 					mbuser.province=citydata.province;
 					mbuser.city=citydata.name;
 				}else{
 					 citydata=MotoDataManager.getInstance().getCityData(city);
-							 if(citydata!=null) {
-									mbuser.province=citydata.province;
-									mbuser.city=citydata.name;
-								}
+					 if(citydata!=null) {
+							 mbuser.province=citydata.province;
+							 mbuser.city=citydata.name;
+						}
 				}
 			}
 			if(map.containsKey("gender")) {
@@ -123,6 +125,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			}
 			mbuser.updatetime=System.currentTimeMillis();
 			UserDAO.inserUserPush(mbuser);
+			LOGGER.debug("mbuser="+JSON.toJSONString(mbuser));
 //			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
 //			userids.add(userid);
 //			if(mbusermodeljsonstr.size()%1000==0) {
