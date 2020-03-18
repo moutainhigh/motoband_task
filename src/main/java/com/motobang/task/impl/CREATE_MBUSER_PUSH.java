@@ -125,7 +125,7 @@ public class CREATE_MBUSER_PUSH implements JobRunner {
 			}
 			mbuser.updatetime=System.currentTimeMillis();
 			UserDAO.inserUserPush(mbuser);
-			LOGGER.debug("mbuser="+JSON.toJSONString(mbuser));
+			LOGGER.info("mbuser="+JSON.toJSONString(mbuser));
 //			mbusermodeljsonstr.add(JSON.toJSONString(mbuser));
 //			userids.add(userid);
 //			if(mbusermodeljsonstr.size()%1000==0) {
